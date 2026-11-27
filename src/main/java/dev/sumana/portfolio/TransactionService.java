@@ -40,4 +40,10 @@ public class TransactionService {
         repository.deleteById(id);
     }
 
+    public List<TransactionRecord> search(String value) {
+        if (value == null || value.isBlank()) {
+            return repository.findAll();
+        }
+        return repository.findByRiskLevelIgnoreCase(value.trim());
+    }
 }
