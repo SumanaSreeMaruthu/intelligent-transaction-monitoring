@@ -40,4 +40,8 @@ public class ApiController {
     public void delete(@PathVariable Long id) {
         service.delete(id);
     }
+    @GetMapping("/search")
+    public List<TransactionRecord> search(@RequestParam(required = false) String riskLevel) {
+        return service.search(riskLevel);
+    }
 }
