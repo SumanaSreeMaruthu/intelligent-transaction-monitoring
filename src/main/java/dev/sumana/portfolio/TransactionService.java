@@ -1,6 +1,7 @@
 package dev.sumana.portfolio;
 
 import java.util.List;
+import dev.sumana.portfolio.audit.ActivityService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,10 +12,12 @@ import org.springframework.web.server.ResponseStatusException;
 public class TransactionService {
 
     private final TransactionRecordRepository repository;
+    private final ActivityService activity;
     
 
-    public TransactionService(TransactionRecordRepository repository) {
+    public TransactionService(TransactionRecordRepository repository, ActivityService activity) {
         this.repository = repository;
+        this.activity = activity;
         
     }
 
@@ -29,7 +32,9 @@ public class TransactionService {
 
     @Transactional
     public TransactionRecord create(ApiController.Request request) {
-        return repository.save(new TransactionRecord(request.transactionId()));
+        TransactionRecord saved = repository.save(new TransactionRecord(request.transactionId()));
+        activity.record("CREATED", "TransactionRecord", saved.getId());
+        return saved;
     }
 
     @Transactional
@@ -38,6 +43,7 @@ public class TransactionService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Record not found");
         }
         repository.deleteById(id);
+        activity.record("DELETED", "TransactionRecord", id);
     }
 
     public List<TransactionRecord> search(String value) {
