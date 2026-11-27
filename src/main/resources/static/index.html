@@ -1,0 +1,10 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Transaction Monitoring</title>
+<style>body{font:16px system-ui;max-width:850px;margin:40px auto;padding:20px;background:#f6f8fc}main,article{background:white;border-radius:12px;padding:20px;margin:12px 0}input,button{font:inherit;padding:10px;margin:6px}button{background:#234c9b;color:white;border:0;border-radius:6px;cursor:pointer}pre{white-space:pre-wrap}</style></head>
+<body><h1>Transaction Monitoring</h1><p>Synthetic transaction IDs only. Demonstration risk heuristics are not compliance decisions.</p><main><form id="form"><input id="value" placeholder="Transaction ID" required><button>Submit</button></form><p id="message" role="status"></p></main><section id="items"></section>
+<script>
+const base='/api/v1/transactions';
+async function request(url,options={}){const response=await fetch(url,{...options,headers:{'Content-Type':'application/json'}});if(!response.ok)throw Error(await response.text());return response.status===204?null:response.json()}
+async function refresh(){try{const data=await request(base);const list=document.getElementById('items');list.replaceChildren();for(const item of data){const card=document.createElement('article');const heading=document.createElement('h3');heading.textContent='Record #'+item.id;const pre=document.createElement('pre');pre.textContent=JSON.stringify(item,null,2);const button=document.createElement('button');button.textContent='Delete';button.onclick=async()=>{await request(base+'/'+item.id,{method:'DELETE'});await refresh()};card.append(heading,pre,button);list.append(card)}}catch(e){document.getElementById('message').textContent=e.message}}
+document.getElementById('form').onsubmit=async e=>{e.preventDefault();try{await request(base,{method:'POST',body:JSON.stringify({transactionId:document.getElementById('value').value})});e.target.reset();await refresh()}catch(error){document.getElementById('message').textContent=error.message}};refresh();
+</script></body></html>
