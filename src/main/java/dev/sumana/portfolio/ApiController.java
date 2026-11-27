@@ -8,20 +8,39 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 public class ApiController {
-    public record Request(@NotBlank String transactionId) {}
-    public record Response(String id, String status, String result, Instant createdAt) {}
+
+    public record Request(@NotBlank String transactionId) {
+    }
+
+    public record Response(
+            String id,
+            String status,
+            String result,
+            Instant createdAt) {
+    }
+
     private final Map<String, Response> items = new ConcurrentHashMap<>();
 
     @PostMapping
     public Response create(@Valid @RequestBody Request request) {
         String id = UUID.randomUUID().toString();
-        Response response = new Response(id, "CREATED", "Transaction monitoring starter: " + request.transactionId(), Instant.now());
+        Response response = new Response(
+                id,
+                "CREATED",
+                "Transaction monitoring starter: " + request.transactionId(),
+                Instant.now());
+
         items.put(id, response);
         return response;
     }
@@ -34,7 +53,9 @@ public class ApiController {
     @GetMapping("/{id}")
     public Response get(@PathVariable String id) {
         Response item = items.get(id);
-        if (item == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
+        if (item == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Not found");
+        }
         return item;
     }
 }
